@@ -21,7 +21,8 @@
 // SOFTWARE.
 
 // Modified by Lasse Oorni for OldschoolEngine2
-
+using System.Collections;
+using System.Collections.Generic;
 using System;
 using System.IO;
 using UnityEngine;
@@ -32,6 +33,8 @@ namespace EMU6502
     {
         readonly byte[] _ram;
         readonly byte[] _ioRam;
+
+        public System.IO.BinaryReader reader;
 
         public delegate byte IORead(ushort address, out bool handled);
         public delegate void IOWrite(ushort address, byte value);
@@ -59,12 +62,47 @@ namespace EMU6502
 
         public virtual byte Read(ushort address)
         {
+      
+
             if ((_ram[0x01] & 0x3) == 0 || address < 0xd000 || address >= 0xe000)
                 return ReadRAM(address);
             else
                 return ReadIO(address);
         }
+        public virtual void initKernal()
+        {
+    
+            TextAsset diskAsset = Resources.Load("kernal") as TextAsset;
 
+            for (int i = 0xE000; i < _ram.Length; i++)
+            {
+                _ram[i] = diskAsset.bytes[i - 0xE000];
+                
+            }
+        }
+        public virtual void initChars()
+        {
+
+            TextAsset diskAsset = Resources.Load("characters") as TextAsset;
+
+            for (int i=0x1000; i < 0x1000 + diskAsset.bytes.Length; i++)
+            {
+                _ram[i] = diskAsset.bytes[i - 0x1000];
+                //Debug.Log(String.Format("{0:x2} {1:x4}", diskAsset.bytes[i], i));
+            }
+        }
+        public virtual void initBasic()
+        {
+
+            TextAsset diskAsset = Resources.Load("basic") as TextAsset;
+
+            for (int i = 0xA000; i < 0xA000 + diskAsset.bytes.Length; i++)
+            {
+                _ram[i] = diskAsset.bytes[i - 0xA000];
+                //Debug.Log(String.Format("{0:x2} {1:x4}", diskAsset.bytes[i - 0xA000],i));
+            }
+
+        }
         public virtual byte ReadRAM(ushort address)
         {
             return _ram[address];

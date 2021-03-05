@@ -54,7 +54,7 @@
                 fixed4 col = tex2D(_MainTex, texCoord);
 
                 float scanLine = clamp(sin((i.uv.y * 200.0 - 0.25) * 2 * 3.14) * 0.66 + 0.5, 0.5, 1.0);
-                return col * scanLine;
+                return col;// *scanLine;
             }
             ENDCG
         }

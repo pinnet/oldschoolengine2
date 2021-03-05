@@ -639,11 +639,11 @@ namespace EMU6502
 
             // HACK: do not care of banking to simplify $01 handling for ingame IRQs
             // There is no game code in $ff00 - $ffff region
-            if (_pc >= 0xff00 && kernalTrap != null)
-            {
-                kernalTrap(_pc);
-                _opcode = 0x60; // RTS, return from the Kernal routine
-            }
+            //if (_pc >= 0xff00 && kernalTrap != null)
+            //{
+            //    kernalTrap(_pc);
+            //    _opcode = 0x60; // RTS, return from the Kernal routine
+            //}
 
             _data = _ram.Read((ushort)(_pc + 1));
             _address = Combine(_data, _ram.Read((ushort)(_pc + 2)));
@@ -1087,6 +1087,10 @@ namespace EMU6502
                 case (0x20): // Absolute
                     Push16((ushort)(_pc + 2)); // + 3 - 1
                     _pc = _address;
+                    if (_pc == 0xfd15)
+                    {
+                        Debug.Log("Reset Vector");
+                    }
                     CountCycle(6);
                     break;
 

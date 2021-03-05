@@ -24,10 +24,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using EMU6502;
+using System;
 
 public class Emulator : MonoBehaviour 
 {
-    public const string diskImageName = "steelrangerdemo";
+    public const string diskImageName = "mw4";
 
     public SpriteRenderer screenRect;
     public Controls controls;
@@ -60,6 +61,9 @@ public class Emulator : MonoBehaviour
         _ram = new RAM64K();
         _ram.ioRead += HandleIORead;
         _ram.ioWrite += HandleIOWrite;
+        
+       
+        
         _processor = new MOS6502(_ram);
         _processor.kernalTrap += HandleKernalTrap;
         _vic2 = new VIC2(_screenTexture, _ram);
@@ -69,14 +73,19 @@ public class Emulator : MonoBehaviour
         screenRect.sprite = Sprite.Create(_screenTexture, new Rect(0, 0, _screenTexture.width, _screenTexture.height), new Vector2(0.5f, 0.5f));
         screenRect.material.SetTexture("_MainTex", _screenTexture);
         screenRect.transform.localScale = new Vector2(1f, -1f);
-
+        
         InitMemory();
+        _processor.Reset();
         BootGame();
+        Debug.Log("booted");
     }
 
     void InitMemory()
     {
         _ram[0x01] = 0x37;
+        //_ram.initKernal();
+        //_ram.initBasic();
+        //_ram.initChars();
         _ram.WriteIO(0xd018, 0x14);
         _ram.WriteIO(0xd011, 27);
         _ram.WriteIO(0xd016, 24);
@@ -93,7 +102,7 @@ public class Emulator : MonoBehaviour
         // No filename, open first file in directory
         FileHandle bootFile = _disk.OpenFile(null);
         if (bootFile != null)
-        {
+         {
             ushort loadAddress = (ushort)(_disk.ReadByte(bootFile) + _disk.ReadByte(bootFile) * 256);
             ushort address = loadAddress;
             while (bootFile.Open)
@@ -257,6 +266,14 @@ public class Emulator : MonoBehaviour
 
     byte HandleIORead(ushort address, out bool handled)
     {
+        int _zpCtl = _ram[0x01];
+
+        if ((_zpCtl & 0x04) == 0)
+        {
+            handled = false;
+            return 0x00;
+
+        }
         if (address == 0xdc00)
         {
             handled = true;
